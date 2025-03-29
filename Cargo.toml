@@ -1,0 +1,9 @@
+[package]
+name = "font_view"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+font = "0.40.0"
+iced = { version = "0.13.1", features = ["image", "lazy"] }
+regex = "1.11.1"
