@@ -21,7 +21,7 @@ SOFTWARE.
 */
 use std::slice::Iter;
 
-use super::{Def, Line};
+use super::{Color, Def, Line, PlotPoint};
 
 //*****************************************************************************
 pub struct Lines {
@@ -79,6 +79,48 @@ impl Lines {
                 idx: usize
             ) {
         self.segments.remove(idx);
+    }
+
+    //*************************************************************************
+    pub fn add_line(
+                &mut self,
+                color: Color,
+                p0:    PlotPoint,
+                p1:    PlotPoint
+            ) {
+        let line = Line::new(
+            Def::Line(color, p0, p1)
+        );
+        self.segments.push(line);
+    }
+
+    //*************************************************************************
+    pub fn add_quadratic(
+                &mut self,
+                color: Color,
+                p0:    PlotPoint,
+                p1:    PlotPoint,
+                p2:    PlotPoint
+            ) {
+        let curve = Line::new(
+            Def::Quadratic(color, p0, p1, p2)
+        );
+        self.segments.push(curve);
+    }
+
+    //*************************************************************************
+    pub fn add_cubic(
+                &mut self,
+                color: Color,
+                p0:    PlotPoint,
+                p1:    PlotPoint,
+                p2:    PlotPoint,
+                p3:    PlotPoint
+            ) {
+        let curve = Line::new(
+            Def::Cubic(color, p0, p1, p2, p3)
+        );
+        self.segments.push(curve);
     }
 
 }

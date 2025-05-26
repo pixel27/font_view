@@ -27,34 +27,26 @@ use iced::{
     Element, Size, Task, Theme
 };
 
-use canvas::{Canvas, Dir, StrokeFactory};
-use line_controls::LineControls;
-use cubic::Cubic;
+use color::Color;
 use define::Define;
 use font_controls::FontControls;
 use glyphs::Glyphs;
-use graph::Graph;
 use line::{Def, Line};
+use line_controls::LineControls;
 use lines::Lines;
 use plot_point::PlotPoint;
-use point::Point;
-use quadratic::Quadratic;
 use settings::Settings;
 use view::View;
 
 //*****************************************************************************
-mod canvas;
-mod line_controls;
-mod cubic;
+mod color;
 mod define;
 mod font_controls;
 mod glyphs;
-mod graph;
 mod line;
+mod line_controls;
 mod lines;
-mod point;
 mod plot_point;
-mod quadratic;
 mod settings;
 mod view;
 
@@ -87,6 +79,7 @@ enum Popin {
 //*****************************************************************************
 #[derive(Debug, Clone)]
 enum Message {
+    ChangeColor(Color),
     ChangeTheme(Theme),
     ChangeThickness(i32),
     ChangeFormula(Action),
@@ -98,7 +91,7 @@ enum Message {
     LineAdd(Def),
     LineChange(usize, Def),
     LineRemove(usize),
-    LineShow(Popin, usize, String),
+    LineShow(Popin, usize, Color, String),
     LineToggle(usize, bool),
     Show(Popin)
 }
@@ -154,6 +147,10 @@ impl FontView {
     //*************************************************************************
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
+            Message::ChangeColor(color) => {
+                self.define.handle_change_color(color);
+                Task::none()
+            },
             Message::ChangeTheme(theme) => {
                 self.handle_change_theme(theme);
                 Task::none()
@@ -201,8 +198,8 @@ impl FontView {
                 self.view.update(&self.lines);
                 Task::none()
             },
-            Message::LineShow(popin, idx, formula) => {
-                self.define.handle_edit(popin, idx, formula);
+            Message::LineShow(popin, idx, color, formula) => {
+                self.define.handle_edit(popin, idx, color, formula);
                 focus_next()
             },
             Message::LineToggle(idx, show) => {
@@ -218,7 +215,7 @@ impl FontView {
             Message::Show(popin) => {
                 self.define.handle_show(popin);
                 focus_next()
-            },
+            }
         }
     }
 
@@ -236,71 +233,71 @@ impl FontView {
 
         // Horizontal
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: -500.0, y: -500.0}, PlotPoint{ x:500.0, y:-500.0})
+            Def::Line(Color::Black, PlotPoint{x: -500.0, y: -500.0}, PlotPoint{ x:500.0, y:-500.0})
         );
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: 500.0, y:500.0}, PlotPoint{ x:-500.0, y:500.0})
+            Def::Line(Color::Black, PlotPoint{x: 500.0, y:500.0}, PlotPoint{ x:-500.0, y:500.0})
         );
         // Vertical
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: -500.0, y: 500.0}, PlotPoint{ x: -500.0, y:-500.0})
+            Def::Line(Color::Black, PlotPoint{x: -500.0, y: 500.0}, PlotPoint{ x: -500.0, y:-500.0})
         );
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: 500.0, y: -500.0}, PlotPoint{ x: 500.0, y: 500.0})
+            Def::Line(Color::Black, PlotPoint{x: 500.0, y: -500.0}, PlotPoint{ x: 500.0, y: 500.0})
         );
 
         // line_x_downward
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: -500.0, y: 500.0}, PlotPoint{ x: 0.0, y: 250.0})
+            Def::Line(Color::Blue, PlotPoint{x: -500.0, y: 500.0}, PlotPoint{ x: 0.0, y: 250.0})
         );
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: 0.0, y: 0.0}, PlotPoint{ x: -500.0, y: 250.0})
+            Def::Line(Color::Blue, PlotPoint{x: 0.0, y: 0.0}, PlotPoint{ x: -500.0, y: 250.0})
         );
         // line_x_upward
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: -500.0, y: 250.0}, PlotPoint{ x: 0.0, y: 500.0})
+            Def::Line(Color::Crimson, PlotPoint{x: -500.0, y: 250.0}, PlotPoint{ x: 0.0, y: 500.0})
         );
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: 0.0, y: 250.0}, PlotPoint{ x: -500.0, y: 0.0})
+            Def::Line(Color::Crimson, PlotPoint{x: 0.0, y: 250.0}, PlotPoint{ x: -500.0, y: 0.0})
         );
         // line_y_downward (right)
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: 0.0, y: 500.0}, PlotPoint{ x: 250.0, y: 0.0})
+            Def::Line(Color::Cyan, PlotPoint{x: 0.0, y: 500.0}, PlotPoint{ x: 250.0, y: 0.0})
         );
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: 500.0, y: 0.0}, PlotPoint{ x: 250.0, y: 500.0})
+            Def::Line(Color::Cyan, PlotPoint{x: 500.0, y: 0.0}, PlotPoint{ x: 250.0, y: 500.0})
         );
         // line_y_upward (left)
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: 250.0, y: 0.0}, PlotPoint{ x: 500.0, y: 500.0})
+            Def::Line(Color::Gold, PlotPoint{x: 250.0, y: 0.0}, PlotPoint{ x: 500.0, y: 500.0})
         );
         self.lines.handle_line_add(
-            Def::Line(PlotPoint{x: 250.0, y: 500.0}, PlotPoint{ x: 0.0, y: 0.0})
+            Def::Line(Color::Gold, PlotPoint{x: 250.0, y: 500.0}, PlotPoint{ x: 0.0, y: 0.0})
         );
 
         // Quadratic
         self.lines.handle_line_add(
-            Def::Quadratic(PlotPoint{x: -500.0, y: 0.0}, PlotPoint { x: -250.0, y: -250.0}, PlotPoint { x: -500.0, y: -500.0})
-        );
-
-        self.lines.handle_line_add(
-            Def::Quadratic(PlotPoint{x: 0.0, y: -500.0}, PlotPoint { x: -250.0, y: -250.0}, PlotPoint { x: 0.0, y: 0.0})
+            Def::Quadratic(Color::Lavender, PlotPoint{x: -500.0, y: 0.0}, PlotPoint { x: -250.0, y: -250.0}, PlotPoint { x: -500.0, y: -500.0})
         );
         self.lines.handle_line_add(
-            Def::Quadratic(PlotPoint{x: -300.0, y: 0.0}, PlotPoint { x: -250.0, y: -500.0}, PlotPoint { x: -200.0, y: 0.0})
+            Def::Quadratic(Color::Lavender, PlotPoint{x: 0.0, y: -500.0}, PlotPoint { x: -250.0, y: -250.0}, PlotPoint { x: 0.0, y: 0.0})
         );
         self.lines.handle_line_add(
-            Def::Quadratic(PlotPoint{x: -200.0, y: -500.0}, PlotPoint { x: -250.0, y: 0.0}, PlotPoint { x: -300.0, y: -500.0})
+            Def::Quadratic(Color::Lavender, PlotPoint{x: -300.0, y: 0.0}, PlotPoint { x: -250.0, y: -500.0}, PlotPoint { x: -200.0, y: 0.0})
         );
         self.lines.handle_line_add(
-            Def::Quadratic(PlotPoint{x: -500.0, y: -250.0}, PlotPoint { x: -250.0, y: -250.0}, PlotPoint { x: -250.0, y: 0.0})
+            Def::Quadratic(Color::Lavender, PlotPoint{x: -200.0, y: -500.0}, PlotPoint { x: -250.0, y: 0.0}, PlotPoint { x: -300.0, y: -500.0})
         );
         self.lines.handle_line_add(
-            Def::Quadratic(PlotPoint{x: -250.0, y: -500.0}, PlotPoint { x: -250.0, y: -250.0}, PlotPoint { x: 0.0, y: -250.0})
+            Def::Quadratic(Color::Lavender, PlotPoint{x: -500.0, y: -250.0}, PlotPoint { x: -250.0, y: -250.0}, PlotPoint { x: -250.0, y: 0.0})
+        );
+        self.lines.handle_line_add(
+            Def::Quadratic(Color::Lavender, PlotPoint{x: -250.0, y: -500.0}, PlotPoint { x: -250.0, y: -250.0}, PlotPoint { x: 0.0, y: -250.0})
         );
 
         self.lines.handle_line_add(
             Def::Cubic(
+                Color::Indigo,
                 PlotPoint { x: 0.0, y: 0.0},
                 PlotPoint { x: 1000.0, y: -650.0},
                 PlotPoint { x: -500.0, y: -650.0},
@@ -309,6 +306,7 @@ impl FontView {
         );
         self.lines.handle_line_add(
             Def::Cubic(
+                Color::Indigo,
                 PlotPoint { x: 0.0, y: -500.0},
                 PlotPoint { x: 300.0, y: 0.0},
                 PlotPoint { x: 200.0, y: 0.0},

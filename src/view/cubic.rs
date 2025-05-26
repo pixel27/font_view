@@ -19,24 +19,25 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
-use super::{Point, Dir};
+use super::{Dir, Point};
 
 //*****************************************************************************
-pub struct Quadratic {
+pub struct Cubic {
     p0: Point,
     p1: Point,
-    p2: Point
+    p2: Point,
+    p3: Point
 }
 
-impl Quadratic {
+impl Cubic {
     //*************************************************************************
     pub fn new(
                 p0: Point,
                 p1: Point,
-                p2: Point
+                p2: Point,
+                p3: Point
             ) -> Self {
-        Self { p0, p1, p2 }
+        Self { p0, p1, p2, p3 }
     }
 
     //*************************************************************************
@@ -46,46 +47,47 @@ impl Quadratic {
                 step: isize
             ) -> Point {
         let m = step - t;
-        let a = m * m ;
-        let b = 2 * m * t;
-        let c = t * t;
+        let a = m * m * m;
+        let b = 3 * m * m * t;
+        let c = 3 * m * t * t;
+        let d = t * t * t;
 
-        (self.p0 * a  + self.p1 * b + self.p2 * c) / step / step
+        (self.p0 * a + self.p1 * b + self.p2 * c + self.p3 * d) / step / step / step
     }
 
     //*****************************************************************************
     pub fn bounds(&self) -> (Point, Point) {
-        let mut x_min = self.p0.x.min(self.p2.x);
-        let mut x_max = self.p0.x.max(self.p2.x);
-        let mut y_min = self.p0.y.min(self.p2.y);
-        let mut y_max = self.p0.y.max(self.p2.y);
+        let mut x_min = self.p0.x.min(self.p3.x);
+        let mut x_max = self.p0.x.max(self.p3.x);
+        let mut y_min = self.p0.y.min(self.p3.y);
+        let mut y_max = self.p0.y.max(self.p3.y);
 
-        let a = self.p0 - self.p1;
+        let a = self.p0 * -1 + self.p1 * 3 - self.p2 * 3 + self.p3;
         let b = self.p0 - self.p1 * 2 + self.p2;
+        let c = self.p1 - self.p0;
+        let d = b * b - a * c;
 
-        if b.x != 0 && (a.x>0) == (b.x>0) {
-            let t = a.x.abs();
-            let s = b.x.abs();
+        if a.x != 0 && d.x > 0 {
+            let t = -b.x - d.x.isqrt();
 
-            if t < s {
-                let point = self.for_t(t, s);
-                x_min = x_min.min(point.x);
-                x_max = x_max.max(point.x);
-                y_min = y_min.min(point.y);
-                y_max = y_max.max(point.y);
+            if t > 0 && t < a.x {
+                let p = self.for_t(t, a.x);
+                x_min = x_min.min(p.x);
+                x_max = x_max.max(p.x);
+                y_min = y_min.min(p.y);
+                y_max = y_max.max(p.y);
             }
         }
 
-        if b.y != 0 && (a.y>0) == (b.y>0) {
-            let t = a.y.abs();
-            let s = b.y.abs();
+        if a.y != 0 && d.y > 0 {
+            let t = -b.y - d.y.isqrt();
 
-            if t < s {
-                let point = self.for_t(t, s);
-                x_min = x_min.min(point.x);
-                x_max = x_max.max(point.x);
-                y_min = y_min.min(point.y);
-                y_max = y_max.max(point.y);
+            if t > 0 && t < a.y {
+                let p = self.for_t(t, a.y);
+                x_min = x_min.min(p.x);
+                x_max = x_max.max(p.x);
+                y_min = y_min.min(p.y);
+                y_max = y_max.max(p.y);
             }
         }
 
@@ -120,7 +122,7 @@ impl Quadratic {
         ];
         let diff = to - from;
 
-        if diff.x.abs() > 1 || diff.y.abs() > 1 {
+        if diff.x.abs() > 1 || diff.x.abs() > 1 {
             Err(())
         } else {
             Ok(
@@ -145,7 +147,7 @@ impl Quadratic {
             for t in 1..=step {
                 let next = self.for_t(t, step);
 
-                if let Ok(wrapped) = Quadratic::dir(current, next) {
+                if let Ok(wrapped) = Cubic::dir(current, next) {
                     if let Some(dir) = wrapped {
                         result.push(dir);
                         current = next;

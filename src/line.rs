@@ -25,14 +25,14 @@ use iced::widget::{
     text
 };
 
-use super::{Message, PlotPoint, Popin};
+use super::{Color, Message, PlotPoint, Popin};
 
 //*****************************************************************************
 #[derive(Debug, Clone)]
 pub enum Def {
-    Line(PlotPoint, PlotPoint),
-    Quadratic(PlotPoint, PlotPoint, PlotPoint),
-    Cubic(PlotPoint, PlotPoint, PlotPoint, PlotPoint)
+    Line(Color, PlotPoint, PlotPoint),
+    Quadratic(Color, PlotPoint, PlotPoint, PlotPoint),
+    Cubic(Color, PlotPoint, PlotPoint, PlotPoint, PlotPoint)
 }
 
 //*****************************************************************************
@@ -48,9 +48,9 @@ impl Line {
                 def: Def
             ) -> Self {
         let text = match def {
-            Def::Line(p0, p1)           => format!("({} {}) ({} {})", p0.x, p0.y, p1.x, p1.y),
-            Def::Quadratic(p0, p1,  p2) => format!("({} {}) ({} {}) ({} {})", p0.x, p0.y, p1.x, p1.y, p2.x, p2.y),
-            Def::Cubic(p0, p1,  p2, p3) => format!("({} {}) ({} {}) ({} {}) ({} {})", p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y),
+            Def::Line(_, p0, p1)           => format!("({} {}) ({} {})", p0.x, p0.y, p1.x, p1.y),
+            Def::Quadratic(_, p0, p1,  p2) => format!("({} {}) ({} {}) ({} {})", p0.x, p0.y, p1.x, p1.y, p2.x, p2.y),
+            Def::Cubic(_, p0, p1,  p2, p3) => format!("({} {}) ({} {}) ({} {}) ({} {})", p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y),
         };
 
         Self {
@@ -64,25 +64,29 @@ impl Line {
                 &self,
                 idx: usize
             ) -> Element<Message> {
+        let color;
         let data = match &self.def {
-            Def::Line(p0, p1) => {
+            Def::Line(c, p0, p1) => {
+                color = *c;
                 row![
-                    text("Line -"),
+                    text(format!("Line({:?}) - ", c)),
                     text(format!("p0: ({}, {})", p0.x, p0.y)),
                     text(format!("p1: ({}, {})", p1.x, p1.y)),
                 ].spacing(5)
             },
-            Def::Quadratic(p0, p1, p2) => {
+            Def::Quadratic(c, p0, p1, p2) => {
+                color = *c;
                 row![
-                    text("Quadratic -"),
+                    text(format!("Quadratic({:?}) - ", c)),
                     text(format!("p0: ({}, {})", p0.x, p0.y)),
                     text(format!("p1: ({}, {})", p1.x, p1.y)),
                     text(format!("p2: ({}, {})", p2.x, p2.y)),
                 ].spacing(5)
             },
-            Def::Cubic(p0, p1, p2, p3) => {
+            Def::Cubic(c, p0, p1, p2, p3) => {
+                color = *c;
                 row![
-                    text("Cubic -"),
+                    text(format!("Cubic({:?}) - ", c)),
                     text(format!("p0: ({}, {})", p0.x, p0.y)),
                     text(format!("p1: ({}, {})", p1.x, p1.y)),
                     text(format!("p2: ({}, {})", p2.x, p2.y)),
@@ -91,9 +95,9 @@ impl Line {
             }
         };
         let popin = match self.def {
-            Def::Line(_, _) => Popin::AddLine,
-            Def::Quadratic(_, _, _) => Popin::AddQuadratic,
-            Def::Cubic(_, _, _, _) => Popin::AddCubic
+            Def::Line(_, _, _) => Popin::AddLine,
+            Def::Quadratic(_, _, _, _) => Popin::AddQuadratic,
+            Def::Cubic(_, _, _, _, _) => Popin::AddCubic
         };
 
         column![
@@ -105,7 +109,7 @@ impl Line {
                     horizontal_space(),
                     button("Edit")
                         .style(button::success)
-                        .on_press(Message::LineShow(popin, idx, self.text.clone())),
+                        .on_press(Message::LineShow(popin, idx, color, self.text.clone())),
                     button("Remove").style(button::danger).on_press(Message::LineRemove(idx))
                 ].padding(4)
                  .spacing(8)

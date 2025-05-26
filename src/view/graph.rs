@@ -19,10 +19,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-use super::{
-    Canvas, Cubic, Def, Lines, PlotPoint,
-    Point, Quadratic, StrokeFactory
-};
+use crate::{Color, Def, Lines, PlotPoint};
+use super::{Canvas, Cubic, Point, Quadratic, StrokeFactory};
 
 //*****************************************************************************
 pub struct Graph {
@@ -94,6 +92,7 @@ impl Graph {
     //*************************************************************************
     fn line(
                 &mut self,
+                c:  Color,
                 p0: PlotPoint,
                 p1: PlotPoint
             ) {
@@ -101,13 +100,14 @@ impl Graph {
         let end   = self.map(p1);
 
         if !self.prepare {
-            self.canvas.line(start, end, cv(0.0, 0.0, 0.0));
+            self.canvas.line(start, end, c.value());
         }
     }
 
     //*************************************************************************
     fn quadratic(
                 &mut self,
+                c:  Color,
                 p0: PlotPoint,
                 p1: PlotPoint,
                 p2: PlotPoint,
@@ -130,7 +130,7 @@ impl Graph {
             let p2 = self.map(p2);
 
             self.canvas.quadratic(
-                p0, p1, p2, cv(0.0, 0.0, 0.0)
+                p0, p1, p2, c.value()
             );
         }
     }
@@ -138,6 +138,7 @@ impl Graph {
     //*************************************************************************
     fn cubic(
                 &mut self,
+                c:  Color,
                 p0: PlotPoint,
                 p1: PlotPoint,
                 p2: PlotPoint,
@@ -162,7 +163,7 @@ impl Graph {
             let p3 = self.map(p3);
 
             self.canvas.cubic(
-                p0, p1, p2, p3, cv(0.0, 0.0, 0.0)
+                p0, p1, p2, p3, c.value()
             );
         }
     }
@@ -186,19 +187,6 @@ impl Graph {
     }
 
     //*************************************************************************
-    fn draw_axis(&mut self) {
-        let x_start = self.map(PlotPoint::new(self.x_min + self.thickness as f32, 0.0));
-        let x_end   = self.map(PlotPoint::new(self.x_max - self.thickness as f32, 0.0));
-        let y_start = self.map(PlotPoint::new(0.0, self.y_min + self.thickness as f32));
-        let y_end   = self.map(PlotPoint::new(0.0, self.y_max - self.thickness as f32));
-
-        if !self.prepare {
-            self.canvas.line(x_start, x_end, cv(1.0, 1.0, 0.0));
-            self.canvas.line(y_start, y_end, cv(1.0, 1.0, 0.0));
-        }
-    }
-
-    //*************************************************************************
     pub fn draw(
                 &mut self,
                 lines: &Lines
@@ -212,13 +200,12 @@ impl Graph {
         for line in lines.iter() {
             if line.is_enabled() {
                 match line.def() {
-                    Def::Line(p0, p1)          => self.line(*p0, *p1),
-                    Def::Quadratic(p0, p1, p2) => self.quadratic(*p0, *p1, *p2),
-                    Def::Cubic(p0, p1, p2, p3) => self.cubic(*p0, *p1, *p2, *p3)
+                    Def::Line(c, p0, p1)          => self.line(*c, *p0, *p1),
+                    Def::Quadratic(c, p0, p1, p2) => self.quadratic(*c, *p0, *p1, *p2),
+                    Def::Cubic(c, p0, p1, p2, p3) => self.cubic(*c, *p0, *p1, *p2, *p3)
                 }
             }
         }
-        self.draw_axis();
 
         self.prepare = false;
         self.create_canvas();
@@ -227,25 +214,12 @@ impl Graph {
         for line in lines.iter() {
             if line.is_enabled() {
                 match line.def() {
-                    Def::Line(p0, p1)          => self.line(*p0, *p1),
-                    Def::Quadratic(p0, p1, p2) => self.quadratic(*p0, *p1, *p2),
-                    Def::Cubic(p0, p1, p2, p3) => self.cubic(*p0, *p1, *p2, *p3)
+                    Def::Line(c, p0, p1)          => self.line(*c, *p0, *p1),
+                    Def::Quadratic(c, p0, p1, p2) => self.quadratic(*c, *p0, *p1, *p2),
+                    Def::Cubic(c, p0, p1, p2, p3) => self.cubic(*c, *p0, *p1, *p2, *p3)
                 }
             }
         }
         self.canvas.set_stroke(self.astroke);
-        self.draw_axis();
     }
-}
-
-//*****************************************************************************
-fn cv(
-            red:   f32,
-            green: f32,
-            blue:  f32
-        ) -> u32 {
-    let red   = (255.0 * red).round() as u32;
-    let green = (255.0 * green).round() as u32;
-    let blue  = (255.0 * blue).round() as u32;
-    0xff000000 | blue << 16 | green << 8 | red
 }

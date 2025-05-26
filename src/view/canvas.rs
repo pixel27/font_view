@@ -28,6 +28,7 @@ use paths::Paths;
 use stroke::Stroke;
 
 pub use stroke_factory::StrokeFactory;
+
 //*****************************************************************************
 mod stroke;
 mod stroke_factory;

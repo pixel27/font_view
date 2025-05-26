@@ -21,7 +21,7 @@ SOFTWARE.
 */
 use std::ops::{Add, Sub, Mul, Div};
 
-use super::PlotPoint;
+use crate::PlotPoint;
 
 //*****************************************************************************
 #[derive(Copy, Clone)]

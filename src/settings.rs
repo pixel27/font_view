@@ -49,7 +49,7 @@ impl Settings {
             text("Thickness:"),
             slider(1..=31, self.thickness, Message::ChangeThickness)
                 .default(5)
-                .shift_step(2),
+                .step(2),
             text(format!("{}", self.thickness)),
             horizontal_space(),
             pick_list(Theme::ALL, Some(theme.clone()), Message::ChangeTheme)

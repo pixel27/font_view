@@ -4,6 +4,6 @@ version = "1.0.0"
 edition = "2021"
 
 [dependencies]
-font = "0.40.0"
+font = "0.42.0"
 iced = { version = "0.13.1", features = ["image", "lazy"] }
 regex = "1.11.1"

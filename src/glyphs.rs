@@ -35,12 +35,12 @@ use iced::{
 };
 use font::{
     self,
+    formats::opentype::characters::Character,
     glyph::Segment,
     Font
 };
-use font::formats::opentype::characters::Character;
 
-use crate::{Def, PlotPoint};
+use crate::{Color, PlotPoint};
 use super::{Lines, Message};
 
 //*****************************************************************************
@@ -203,30 +203,38 @@ impl Glyphs {
                 p0 = p0 + contour.offset;
 
                 for segment in contour.iter() {
-                    let line;
-
                     match segment {
                         Segment::Linear(o1) => {
                             let p1 = p0 + *o1;
-                            line = Def::Line(p0, p1);
+                            lines.add_line(Color::Black, p0, p1);
                             p0 = p1
                         },
                         Segment::Quadratic(o1, o2) => {
                             let p1 = p0 + *o1;
                             let p2 = p1 + *o2;
-                            line = Def::Quadratic(p0, p1, p2);
+                            lines.add_quadratic(Color::Black, p0, p1, p2);
                             p0 = p2;
                         },
                         Segment::Cubic(o1, o2, o3) => {
                             let p1 = p0 + *o1;
                             let p2 = p1 + *o2;
                             let p3 = p2 + *o3;
-                            line = Def::Cubic(p0, p1, p2, p3);
+                            lines.add_cubic(Color::Black, p0, p1, p2, p3);
                             p0 = p3;
                         }
                     };
-                    lines.handle_line_add(line);
                 }
+                let ( left , _, right, _ ) = def.bounding_box;
+
+                if let Ok(metrics) = self.font.metrics() {
+                    lines.add_line(Color::Gold, PlotPoint::new(left - def.side_bearings.0, metrics.baseline), PlotPoint::new(right + def.side_bearings.1, metrics.baseline));
+
+                    lines.add_line(Color::Crimson, PlotPoint::new(0.0, metrics.ascender), PlotPoint::new(def.advance_width, metrics.ascender));
+                    lines.add_line(Color::Crimson, PlotPoint::new(left - def.side_bearings.0, metrics.descender), PlotPoint::new(left - def.side_bearings.0, metrics.ascender));
+                    lines.add_line(Color::Crimson, PlotPoint::new(right + def.side_bearings.1, metrics.descender), PlotPoint::new(right + def.side_bearings.1, metrics.ascender));
+                    lines.add_line(Color::Crimson, PlotPoint::new(0.0, metrics.descender), PlotPoint::new(def.advance_width, metrics.descender));
+                }
+
             }
         }
 

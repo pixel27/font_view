@@ -23,7 +23,7 @@ use std::ops::Add;
 
 use font::Offset;
 
-use super::Point;
+use crate::view::Point;
 
 //*****************************************************************************
 #[derive(Debug, Clone, Copy)]

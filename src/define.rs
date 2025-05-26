@@ -19,17 +19,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-use iced::{Color, Element};
-use iced::alignment::Horizontal;
-use iced::widget::{
-    Column, Space, button, center, column, container,
-    mouse_area, opaque, row, text, stack, text_editor
+use iced::{
+    alignment::Horizontal,
+    widget::{
+        text_editor::{Action, Content},
+        Column, Space, button, center, column, container, mouse_area,
+        opaque, pick_list, row, text, stack, text_editor
+    },
+    self,
+    Element
 };
-use iced::widget::text_editor::{Action, Content};
 
 use regex::Regex;
 
-use super::{Def, Message, Popin, PlotPoint};
+use super::{Color, Def, Message, Popin, PlotPoint};
 
 //*****************************************************************************
 struct Value {
@@ -53,28 +56,30 @@ impl Value {
 
 //*****************************************************************************
 pub struct Define {
-    show:    Popin,
-    p0:      Value,
-    p1:      Value,
-    p2:      Value,
-    p3:      Value,
-    formula: Content,
-    error:   bool,
-    edit:    Option<usize>
+    show:        Popin,
+    color:       Color,
+    p0:          Value,
+    p1:          Value,
+    p2:          Value,
+    p3:          Value,
+    formula:     Content,
+    error:       bool,
+    edit:        Option<usize>
 }
 
 impl Default for Define {
     //*************************************************************************
     fn default() -> Self {
         Self {
-            show:    Popin::None,
-            p0:      Value::new(),
-            p1:      Value::new(),
-            p2:      Value::new(),
-            p3:      Value::new(),
-            formula: Content::default(),
-            error:   false,
-            edit:    None
+            show:        Popin::None,
+            color:       Color::Black,
+            p0:          Value::new(),
+            p1:          Value::new(),
+            p2:          Value::new(),
+            p3:          Value::new(),
+            formula:     Content::default(),
+            error:       false,
+            edit:        None
         }
     }
 }
@@ -92,9 +97,9 @@ impl Define {
 
         let def = match self.show {
             Popin::None         => panic!("We shouldn't get here."),
-            Popin::AddLine      => Def::Line(p0, p1),
-            Popin::AddQuadratic => Def::Quadratic(p0, p1, p2),
-            Popin::AddCubic     => Def::Cubic(p0, p1, p2, p3),
+            Popin::AddLine      => Def::Line(self.color, p0, p1),
+            Popin::AddQuadratic => Def::Quadratic(self.color, p0, p1, p2),
+            Popin::AddCubic     => Def::Cubic(self.color, p0, p1, p2, p3),
         };
 
         if let Some(idx) = self.edit {
@@ -146,12 +151,14 @@ impl Define {
         let addedit = if self.edit.is_none() {
             "Add"
         } else {
-            "Edit"
+            "Save"
         };
 
         let popin = container(
             column![
                 text(format!("Add {}", name)).size(24),
+                Space::with_height(10),
+                pick_list(Color::ALL, Some(self.color), Message::ChangeColor),
                 Space::with_height(10),
                 self.display(),
                 Space::with_height(10),
@@ -173,9 +180,9 @@ impl Define {
                 mouse_area(center(opaque(popin)).style(|_theme| {
                     container::Style {
                         background: Some(
-                            Color {
+                            iced::Color {
                                 a: 0.8,
-                                ..Color::BLACK
+                                ..iced::Color::BLACK
                             }
                             .into(),
                         ),
@@ -216,11 +223,13 @@ impl Define {
                 &mut self,
                 popin:   Popin,
                 idx:     usize,
+                color:   Color,
                 formula: String
             ) {
-        self.show = popin;
-        self.formula = Content::with_text(&formula);
-        self.edit    = Some(idx);
+        self.show        = popin;
+        self.formula     = Content::with_text(&formula);
+        self.edit        = Some(idx);
+        self.color       = color;
         self.parse_text(&formula);
         self.error = false;
     }
@@ -259,6 +268,14 @@ impl Define {
         }
 
         pos
+    }
+
+    //*************************************************************************
+    pub fn handle_change_color(
+                &mut self,
+                color: Color
+            ) {
+        self.color = color;
     }
 
     //*************************************************************************

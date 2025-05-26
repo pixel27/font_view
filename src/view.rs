@@ -19,14 +19,31 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-use iced::Element;
-use iced::widget::{
-    column, horizontal_rule, horizontal_space, image,
-    responsive, row, text, vertical_space
+use iced::{
+    widget::{
+        image::Handle,
+        column, horizontal_rule, horizontal_space, image, responsive,
+        row, text, vertical_space
+    },
+    Element
 };
-use iced::widget::image::Handle;
 
-use super::{Graph, Lines, Message};
+use crate::{Lines, Message};
+
+use canvas::{Canvas, Dir, StrokeFactory};
+use cubic::Cubic;
+use graph::Graph;
+use quadratic::Quadratic;
+
+//*****************************************************************************
+pub use point::Point;
+
+//*****************************************************************************
+mod canvas;
+mod cubic;
+mod graph;
+mod point;
+mod quadratic;
 
 //*****************************************************************************
 pub struct View {
@@ -59,6 +76,7 @@ impl View {
             graph
         }
     }
+
     //*************************************************************************
     pub fn view(
                 &self
@@ -72,7 +90,7 @@ impl View {
         let height = self.height;
 
         column![
-            horizontal_rule(4),
+            horizontal_rule(1),
             row![
                 text(top_left),
                 horizontal_space(),
@@ -110,7 +128,7 @@ impl View {
                 horizontal_space(),
                 text(bottom_right)
             ].padding(4),
-            horizontal_rule(4),
+            horizontal_rule(1),
         ].into()
     }
 
